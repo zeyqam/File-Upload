@@ -46,21 +46,21 @@ namespace Fiorello_PB101.Services
         {
             if (request!=null && request.Length>0)
             {
-                string fileName=Guid.NewGuid().ToString()+ "-"+ request.FileName;
+                string fileName=Guid.NewGuid().ToString()+ "-"+ Path.GetFileName (request.FileName);
                 //var uploads = Path.Combine(_env.WebRootPath, "img");
                 string path=Path.Combine(fileName,request.FileName);
                 using (FileStream fileStream = new (path, FileMode.Create))
                 {
                     await request.CopyToAsync(fileStream);
                 }
-                blog.Image = "/img" + request.FileName;
+                blog.Image = "/img/" + request.FileName;
             }
 
 
             await _context.Blogs.AddAsync(blog);
            await _context.SaveChangesAsync();
             
-            
+
         }
 
         public async Task DeleteAsync(Blog blog)
@@ -103,33 +103,47 @@ namespace Fiorello_PB101.Services
 
         public async Task UpdateAsync(Blog blog, IFormFile request)
         {
-            if (request != null)
+            if (request != null && request.Length > 0)
             {
-                // Yalnız şəkillər üçün yoxlama
+                
                 if (!request.ContentType.Contains("image/"))
                 {
                     throw new InvalidOperationException("Yalnız şəkillər yüklənə bilər.");
                 }
 
-                // Şəkilin ölçüsünü yoxlama (200 KB = 204800 bytes)
+                
                 if (request.Length > 204800)
                 {
                     throw new InvalidOperationException("Şəkilin ölçüsü 200 KB-dan böyük ola bilməz.");
                 }
 
+                
+                string fileName = Guid.NewGuid().ToString() + "-" + Path.GetFileName(request.FileName);
                 var uploads = Path.Combine(_env.WebRootPath, "img");
-                var filePath = Path.Combine(uploads, request.FileName);
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                string filePath = Path.Combine(uploads, fileName);
+
+                
+                await using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
                     await request.CopyToAsync(fileStream);
                 }
-                blog.Image = "/" + request.FileName;
+
+                
+                if (!string.IsNullOrEmpty(blog.Image))
+                {
+                    string oldImagePath = Path.Combine(_env.WebRootPath, blog.Image.TrimStart('/'));
+                    if (File.Exists(oldImagePath))
+                    {
+                        File.Delete(oldImagePath);
+                    }
+                }
+
+                blog.Image = "/img/" + fileName;
             }
 
             _context.Blogs.Update(blog);
             await _context.SaveChangesAsync();
 
-            
         }
     }
     

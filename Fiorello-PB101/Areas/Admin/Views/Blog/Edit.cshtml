@@ -22,7 +22,7 @@
         <input asp-for="ImageFile" type="file" accept="image/*" class="form-control" />
         <span asp-validation-for="ImageFile" class="text-danger"></span>
 
-        @* Mövcud şəkili göstər *@
+        
         @if (!string.IsNullOrEmpty(Model.Image))
         {
             <div class="mt-2">

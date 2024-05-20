@@ -77,7 +77,15 @@ namespace Fiorello_PB101.Areas.Admin.Controllers
             {
                 return NotFound();
             }
-            return View(blog);
+            var blogVM = new BlogVM
+            {
+                Id = blog.Id,
+                Title = blog.Title,
+                Description = blog.Description,
+                Image = blog.Image,
+                CreatedDate = blog.CreatedDate
+            };
+            return View(blogVM);
         }
 
         [HttpPost]
